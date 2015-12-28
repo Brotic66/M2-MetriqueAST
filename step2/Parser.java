@@ -16,9 +16,9 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 public class Parser {
 
-	public static final String projectPath = "/home/brice/IdeaProjects/ProjSeriai/";
+	public static final String projectPath = "/home/brice/IdeaProjects/M2-MetriqueAST/";
 	public static final String projectSourcePath = projectPath + "Code/";
-	public static final String jrePath = "/usr/local/java/jdk1.8.0_40/jre/lib/rt.jar";
+	public static final String jrePath = "/opt/java/jdk1.8.0_66/jre/lib/rt.jar";
 
 	public static void main(String[] args) throws IOException {
 

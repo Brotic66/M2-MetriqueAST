@@ -1,9 +1,9 @@
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import scala.Array;
-import scala.collection.mutable.StringBuilder;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import step2.MethodDeclarationVisitor;
+import step2.MethodInvocationVisitor;
 import step2.Parser;
 
 import java.io.File;
@@ -16,9 +16,9 @@ import java.util.ArrayList;
  * @date 16/12/2015
  */
 public class MyParser extends Parser {
-    public static final String projectPath = "/home/brice/IdeaProjects/ProjSeriai/";
+    public static final String projectPath = "/home/brice/IdeaProjects/M2-MetriqueAST/";
     public static final String projectSourcePath = projectPath + "Code/";
-    public static final String jrePath = "/usr/local/java/jdk1.8.0_40/jre/lib/rt.jar";
+    public static final String jrePath = "/opt/java/jdk1.8.0_66/jre/lib/rt.jar";
 
 
     public static void main(String[] args) throws IOException {
@@ -27,56 +27,72 @@ public class MyParser extends Parser {
         final File folder = new File(projectSourcePath);
         ArrayList<File> javaFiles = listJavaFilesForFolder(folder);
 
-        int min = 0;
-        int max = 0;
-        int som = 0;
-        boolean init = true;
-        ArrayList<Integer> liste = new ArrayList<>();
-
+        MyStruct struct = new MyStruct();
 
         for (File fileEntry : javaFiles) {
             String content = FileUtils.readFileToString(fileEntry);
-            // System.out.println(content);
 
             CompilationUnit parse = parse(content.toCharArray());
 
-            // print methods info
-            //printMethodInfo(parse);
-            int nbrMethod = nbrMethodInfo(parse);
-            som += nbrMethod;
-            liste.add(nbrMethod);
+            System.out.println("========== Fichier : " + fileEntry.getName());
 
-            if (nbrMethod > max)
-                max = nbrMethod;
-            if (init) {
-                init = false;
-                min = nbrMethod;
-            } else if (min > nbrMethod) {
-                min = nbrMethod;
-            }
-
-
-           // System.out.println(nbrMethod);
-
-            // print variables info
-            //printVariableInfo(parse);
-
-            //print method invocations
-            //printMethodInvocationInfo(parse);
+            //classNOM(parse, true, struct);
+            cohesionICH(parse, true, struct);
 
         }
 
-        System.out.println("Minimum : " + min);
-        System.out.println("Maximum : " + max);
-        System.out.println("Somme : " + som);
-        System.out.println(liste);
-        System.out.println("Moyenne : " + (double)som/liste.size());
+        System.out.println("Minimum : " + struct.min);
+        System.out.println("Maximum : " + struct.max);
+        System.out.println("Somme : " + struct.som);
+        System.out.println(struct.liste);
+        System.out.println("Moyenne : " + (double)(struct.som)/struct.liste.size());
     }
 
-    public static int nbrMethodInfo(CompilationUnit parse) {
+    private static void cohesionICH(CompilationUnit parse, boolean init, MyStruct struct) {
+        int nbr = 0;
+        MethodDeclarationVisitor visitor1 = new MethodDeclarationVisitor();
+        parse.accept(visitor1);
+
+        for (MethodDeclaration method : visitor1.getMethods()) {
+            MethodInvocationVisitor visitor2 = new MethodInvocationVisitor();
+            method.accept(visitor2);
+
+            for (MethodInvocation methodInvocation : visitor2.getMethods()) {
+                String callerClass = method.resolveBinding().getDeclaringClass().getName();
+                String calledClass = methodInvocation.resolveMethodBinding().getDeclaringClass().getName();
+
+                if (calledClass.equals(callerClass))
+                    nbr++;
+            }
+        }
+
+        struct.som += nbr;
+        struct.liste.add(nbr);
+        if (nbr > struct.max)
+            struct.max = nbr;
+        if (init) {
+            init = false;
+            struct.min = nbr;
+        } else if (struct.min > nbr) {
+            struct.min = nbr;
+        }
+    }
+
+    private static void classNOM(CompilationUnit parse, boolean init, MyStruct struct) {
         MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
         parse.accept(visitor);
 
-        return visitor.getMethods().size();
+        int nbrMethod = visitor.getMethods().size();
+        struct.som += nbrMethod;
+        struct.liste.add(nbrMethod);
+
+        if (nbrMethod > struct.max)
+            struct.max = nbrMethod;
+        if (init) {
+            init = false;
+            struct.min = nbrMethod;
+        } else if (struct.min > nbrMethod) {
+            struct.min = nbrMethod;
+        }
     }
 }

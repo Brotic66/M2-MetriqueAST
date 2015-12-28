@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="plugins">
+    <CLASSES>
+      <root url="file://$APPLICATION_HOME_DIR$/plugins/eclipse/plugins" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$APPLICATION_HOME_DIR$/plugins/eclipse/plugins" />
+    </SOURCES>
+    <jarDirectory url="file://$APPLICATION_HOME_DIR$/plugins/eclipse/plugins" recursive="false" />
+    <jarDirectory url="file://$APPLICATION_HOME_DIR$/plugins/eclipse/plugins" recursive="false" type="SOURCES" />
+  </library>
+</component>
