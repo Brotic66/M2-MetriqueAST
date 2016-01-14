@@ -1,7 +1,6 @@
+import Test.BMW;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.*;
 import step2.MethodDeclarationVisitor;
 import step2.MethodInvocationVisitor;
 import step2.Parser;
@@ -9,6 +8,8 @@ import step2.Parser;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 
 /**
@@ -17,7 +18,7 @@ import java.util.ArrayList;
  */
 public class MyParser extends Parser {
     public static final String projectPath = "/home/brice/IdeaProjects/M2-MetriqueAST/";
-    public static final String projectSourcePath = projectPath + "Code/";
+    public static final String projectSourcePath = projectPath + "Code/jadvisor/";
     public static final String jrePath = "/opt/java/jdk1.8.0_66/jre/lib/rt.jar";
 
 
@@ -29,23 +30,29 @@ public class MyParser extends Parser {
 
         MyStruct struct = new MyStruct();
 
-        for (File fileEntry : javaFiles) {
+        BMW voiture = new BMW();
+        voiture.roule();
+
+       /* for (File fileEntry : javaFiles) {
             String content = FileUtils.readFileToString(fileEntry);
 
             CompilationUnit parse = parse(content.toCharArray());
 
-            System.out.println("========== Fichier : " + fileEntry.getName());
+            //System.out.println("========== Fichier : " + fileEntry.getName());
 
             //classNOM(parse, true, struct);
-            cohesionICH(parse, true, struct);
+            //cohesionICH(parse, true, struct);
+        }*/
 
-        }
+        //System.out.println(infoHidingMHF(javaFiles));
+        //System.out.println(getMapChilds(javaFiles));
+        inheritanceDOI(javaFiles);
 
-        System.out.println("Minimum : " + struct.min);
+        /*System.out.println("Minimum : " + struct.min);
         System.out.println("Maximum : " + struct.max);
         System.out.println("Somme : " + struct.som);
         System.out.println(struct.liste);
-        System.out.println("Moyenne : " + (double)(struct.som)/struct.liste.size());
+        System.out.println("Moyenne : " + (double)(struct.som)/struct.liste.size());*/
     }
 
     private static void cohesionICH(CompilationUnit parse, boolean init, MyStruct struct) {
@@ -94,5 +101,182 @@ public class MyParser extends Parser {
         } else if (struct.min > nbrMethod) {
             struct.min = nbrMethod;
         }
+    }
+
+    private static float infoHidingMHF(ArrayList<File> javaFiles) throws IOException {
+        ArrayList<Integer> mvs = new ArrayList<>();
+        HashMap<String, HashSet<String>> map = getMapChilds(javaFiles);
+        int nbrMethod = 0;
+        int nbrClasse = 0;
+
+        for (File fileEntry : javaFiles) {
+            System.out.println(fileEntry.getName());
+
+            String content = FileUtils.readFileToString(fileEntry);
+            CompilationUnit parse = parse(content.toCharArray());
+
+            nbrClasse++;
+
+            MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
+            parse.accept(visitor);
+
+            ITypeBinding type = null;
+            int cptMethodPubProt = 0;
+
+            for (MethodDeclaration m : visitor.getMethods()) {
+                String split[] = m.resolveBinding().toString().split(" ");
+                type = m.resolveBinding().getDeclaringClass();
+                cptMethodPubProt = 0;
+                nbrMethod++;
+
+                if (split[0].equals("public") || split[0].equals("protected")) {
+                    cptMethodPubProt++;
+                }
+
+                String className = m.resolveBinding().getDeclaringClass().getName();
+
+                if (map.containsKey(className))
+                mvs.add(map.get(className).size() * cptMethodPubProt);
+            }
+
+            System.out.println(mvs);
+        }
+
+        float som = 0;
+        for (int i : mvs)
+          som += ((float)i/(float)(nbrClasse - 1));
+
+
+        return (((float)1 - som)/ (float)nbrMethod);
+    }
+
+    public static HashMap<String, HashSet<String>> getMapChilds(ArrayList<File> javaFiles) throws IOException {
+        HashMap<String, HashSet<String>> map = new HashMap<>();
+
+        for (File fileEntry : javaFiles) {
+            System.out.println(fileEntry.getName());
+
+            String content = FileUtils.readFileToString(fileEntry);
+            CompilationUnit parse = parse(content.toCharArray());
+
+            MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
+            parse.accept(visitor);
+
+            if (visitor.getMethods().isEmpty())
+                System.out.println("========== Fuck ==========");
+            else {
+                ITypeBinding typeEnfant = visitor.getMethods().get(0).resolveBinding().getDeclaringClass();
+                String enfant = typeEnfant.getName();
+                ITypeBinding[] inter = typeEnfant.getInterfaces();
+                ITypeBinding typeParent = typeEnfant.getSuperclass();
+                String parent = "";
+                if (typeParent != null)
+                    parent = typeParent.getName();
+
+                ArrayList<String> listEnfants = new ArrayList<>();
+                while (typeParent != null) {
+                    if (!map.containsKey(parent))
+                        map.put(parent, new HashSet<>());
+
+                    if (!map.containsKey(enfant))
+                        map.put(enfant, new HashSet<>());
+
+                        listEnfants.add(enfant);
+                        System.out.println("Enfant : " + enfant + "=== Parent : " + parent);
+
+                        map.get(parent).addAll(listEnfants);
+
+                    for (ITypeBinding i : inter) {
+                        if (!map.containsKey(i.getName()))
+                            map.put(i.getName(), new HashSet<>());
+
+                        map.get(i.getName()).add(enfant);
+
+                        if (!map.containsKey("Object"))
+                            map.put("Object", new HashSet<>());
+
+                        map.get("Object").add(i.getName());
+                    }
+
+                        if (!map.get(parent).contains(enfant))
+                            map.get(parent).add(enfant);
+
+                    typeEnfant = typeParent;
+                    inter = typeEnfant.getInterfaces();
+                    typeParent = typeParent.getSuperclass();
+
+                    if (typeParent != null) {
+                        enfant = typeEnfant.getName();
+                        parent = typeParent.getName();
+                    }
+                }
+            }
+        }
+
+        System.out.println(map);
+
+        ajouterEnfants("Object",map);
+
+        System.out.println(map);
+        return map;
+    }
+
+
+    public static void ajouterEnfants(String s, HashMap<String, HashSet<String>> map)
+    {
+        if (map.containsKey(s))
+            for (String ss : map.get(s))
+            {
+                System.out.println("Classe : " + ss);
+                ajouterEnfants(ss, map);
+                map.get(s).addAll(map.get(ss));
+
+            }
+    }
+
+    public static void inheritanceDOI(ArrayList<File> javaFiles) throws IOException {
+        HashMap<String, HashSet<String>> map = new HashMap<>();
+
+        int profondeurMax = 0;
+        for (File fileEntry : javaFiles) {
+            System.out.println(fileEntry.getName());
+
+            String content = FileUtils.readFileToString(fileEntry);
+            CompilationUnit parse = parse(content.toCharArray());
+
+            MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
+            parse.accept(visitor);
+
+            if (visitor.getMethods().isEmpty())
+                System.out.println("========== Fuck ==========");
+            else {
+                ITypeBinding typeEnfant = visitor.getMethods().get(0).resolveBinding().getDeclaringClass();
+                String enfant = typeEnfant.getName();
+                ITypeBinding typeParent = typeEnfant.getSuperclass();
+                String parent = "";
+                if (typeParent != null)
+                    parent = typeParent.getName();
+
+                int profondeur = 0;
+                while (typeParent != null && !typeParent.toString().contains("java.")) {
+
+                    System.out.println(typeParent.toString());
+                    typeEnfant = typeParent;
+                    typeParent = typeParent.getSuperclass();
+
+                    if (typeParent != null) {
+                        enfant = typeEnfant.getName();
+                        parent = typeParent.getName();
+                    }
+
+                    profondeur++;
+                }
+
+                if (profondeurMax < profondeur)
+                    profondeurMax = profondeur;
+            }
+        }
+
+        System.out.println(profondeurMax +1);
     }
 }

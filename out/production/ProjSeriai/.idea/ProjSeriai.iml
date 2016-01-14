@@ -14,5 +14,6 @@
     <orderEntry type="library" name="lib" level="project" />
     <orderEntry type="library" name="plugins" level="project" />
     <orderEntry type="library" name="commons-io-2.4" level="project" />
+    <orderEntry type="library" name="commons-io-2" level="application" />
   </component>
 </module>
