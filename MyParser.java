@@ -85,7 +85,7 @@ public class MyParser extends Parser {
         }
     }
     
-    public static void cohesionTCC(CompilationUnit parse){
+	public static void cohesionTCC(CompilationUnit parse){
 		 MethodDeclarationVisitor visitor1 = new MethodDeclarationVisitor();
 	     parse.accept(visitor1);
 		VariableDeclarationFragmentVisitor visitor = new VariableDeclarationFragmentVisitor();
@@ -102,16 +102,19 @@ public class MyParser extends Parser {
 		    	 listeAttributs.add(a.getName().toString());
 		     }
 		     for (int i = 0; i < visitor1.getMethods().size(); i++) {
-		    	 for(int j = i+1; j < visitor1.getMethods().size(); j++){
+		    	 for(int j = i+1; j < visitor1.getMethods().size(); j++){		    		 
 		    		 for(String nomAtt : listeAttributs){
-		    			 if(visitor1.getMethods().get(i).getBody().toString().contains(nomAtt) && visitor1.getMethods().get(j).getBody().toString().contains(nomAtt)){
+		    			 if(visitor1.getMethods().get(j).getBody() != null && visitor1.getMethods().get(i).getBody() != null && visitor1.getMethods().get(i).getBody().toString().contains(nomAtt) && visitor1.getMethods().get(j).getBody().toString().contains(nomAtt)){
 		    				 nbCohesion++;
 		    			 }
+		    			 nbPair++;
 		    		 }
-		    		 nbPair++;
 		    	 }
 		     }
-		     System.out.println("TCC = " + (float)((float)nbCohesion/(float)nbPair)*(float)100 + "%");
+		     if(nbPair != 0)
+		    	 System.out.println("TCC = " + (float)((float)nbCohesion/(float)nbPair)*(float)100 + "%");
+		     else
+		    	 System.out.println("TCC nulle car 0 méthodes");
 	     }
 	     
 	}
