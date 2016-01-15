@@ -84,6 +84,37 @@ public class MyParser extends Parser {
             struct.min = nbr;
         }
     }
+    
+    public static void cohesionTCC(CompilationUnit parse){
+		 MethodDeclarationVisitor visitor1 = new MethodDeclarationVisitor();
+	     parse.accept(visitor1);
+		VariableDeclarationFragmentVisitor visitor = new VariableDeclarationFragmentVisitor();
+		parse.accept(visitor);
+		
+		ArrayList<String> listeAttributs = new ArrayList<String>();
+		int nbPair = 0;
+		int nbCohesion = 0;
+		
+	     if(visitor1.getMethods().size() > 2){
+		     IBinding classe = visitor1.getMethods().get(0).resolveBinding().getDeclaringClass();
+		     System.out.println("Classe : "+ classe.getName());
+		     for(VariableDeclarationFragment a : visitor.getVariables()){
+		    	 listeAttributs.add(a.getName().toString());
+		     }
+		     for (int i = 0; i < visitor1.getMethods().size(); i++) {
+		    	 for(int j = i+1; j < visitor1.getMethods().size(); j++){
+		    		 for(String nomAtt : listeAttributs){
+		    			 if(visitor1.getMethods().get(i).getBody().toString().contains(nomAtt) && visitor1.getMethods().get(j).getBody().toString().contains(nomAtt)){
+		    				 nbCohesion++;
+		    			 }
+		    		 }
+		    		 nbPair++;
+		    	 }
+		     }
+		     System.out.println("TCC = " + (float)((float)nbCohesion/(float)nbPair)*(float)100 + "%");
+	     }
+	     
+	}
 
     private static void classNOM(CompilationUnit parse, boolean init, MyStruct struct) {
         MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
