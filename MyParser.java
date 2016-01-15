@@ -4,12 +4,14 @@ import org.eclipse.jdt.core.dom.*;
 import step2.MethodDeclarationVisitor;
 import step2.MethodInvocationVisitor;
 import step2.Parser;
+import step2.VariableDeclarationFragmentVisitor;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 
 /**
@@ -33,7 +35,7 @@ public class MyParser extends Parser {
         BMW voiture = new BMW();
         voiture.roule();
 
-       /* for (File fileEntry : javaFiles) {
+        /*for (File fileEntry : javaFiles) {
             String content = FileUtils.readFileToString(fileEntry);
 
             CompilationUnit parse = parse(content.toCharArray());
@@ -41,18 +43,20 @@ public class MyParser extends Parser {
             //System.out.println("========== Fichier : " + fileEntry.getName());
 
             //classNOM(parse, true, struct);
+            //classNOA(parse, true, struct);
             //cohesionICH(parse, true, struct);
         }*/
 
         //System.out.println(infoHidingMHF(javaFiles));
-        //System.out.println(getMapChilds(javaFiles));
-        inheritanceDOI(javaFiles);
+        //System.out.println(getMapChilds(javaFiles, true));
+        //inheritanceDOI(javaFiles);
+        inheritanceNOC(javaFiles, true, struct);
 
-        /*System.out.println("Minimum : " + struct.min);
+        System.out.println("Minimum : " + struct.min);
         System.out.println("Maximum : " + struct.max);
         System.out.println("Somme : " + struct.som);
         System.out.println(struct.liste);
-        System.out.println("Moyenne : " + (double)(struct.som)/struct.liste.size());*/
+        System.out.println("Moyenne : " + (double)(struct.som)/struct.liste.size());
     }
 
     private static void cohesionICH(CompilationUnit parse, boolean init, MyStruct struct) {
@@ -137,9 +141,35 @@ public class MyParser extends Parser {
         }
     }
 
+    private static void classNOA(CompilationUnit parse, boolean init, MyStruct struct) {
+        VariableDeclarationFragmentVisitor visitor = new VariableDeclarationFragmentVisitor();
+        parse.accept(visitor);
+
+        int nbrMethod = 0;
+
+        for (VariableDeclaration v : visitor.getVariables()) {
+            if (v.resolveBinding().getDeclaringMethod() == null) {
+                System.out.println(v);
+                nbrMethod++;
+            }
+        }
+
+        struct.som += nbrMethod;
+        struct.liste.add(nbrMethod);
+
+        if (nbrMethod > struct.max)
+            struct.max = nbrMethod;
+        if (init) {
+            init = false;
+            struct.min = nbrMethod;
+        } else if (struct.min > nbrMethod) {
+            struct.min = nbrMethod;
+        }
+    }
+
     private static float infoHidingMHF(ArrayList<File> javaFiles) throws IOException {
         ArrayList<Integer> mvs = new ArrayList<>();
-        HashMap<String, HashSet<String>> map = getMapChilds(javaFiles);
+        HashMap<String, HashSet<String>> map = getMapChilds(javaFiles, true);
         int nbrMethod = 0;
         int nbrClasse = 0;
 
@@ -184,7 +214,44 @@ public class MyParser extends Parser {
         return (((float)1 - som)/ (float)nbrMethod);
     }
 
-    public static HashMap<String, HashSet<String>> getMapChilds(ArrayList<File> javaFiles) throws IOException {
+    private static void inheritanceNOC(ArrayList<File> javaFiles, boolean init, MyStruct struct) throws IOException {
+        ArrayList<Integer> mvs = new ArrayList<>();
+        HashMap<String, HashSet<String>> map = getMapChilds(javaFiles, false);
+
+        for (Map.Entry<String, HashSet<String>> entry : map.entrySet()) {
+
+            if (!entry.getKey().equals("Object") && !entry.getKey().startsWith("J")) {
+
+                boolean test = false;
+
+                for (File s : javaFiles) {
+                    System.out.println(s.getName());
+                    String split[] = s.getName().split("\\.");
+
+                    if (split[0].equals(entry.getKey()))
+                        test = true;
+                }
+
+                if (test) {
+                    struct.som += entry.getValue().size();
+                    struct.liste.add(entry.getValue().size());
+
+                    System.out.println(entry.getKey());
+
+                    if (entry.getValue().size() > struct.max)
+                        struct.max = entry.getValue().size();
+                    if (init) {
+                        init = false;
+                        struct.min = entry.getValue().size();
+                    } else if (struct.min > entry.getValue().size()) {
+                        struct.min = entry.getValue().size();
+                    }
+                }
+            }
+        }
+    }
+
+    public static HashMap<String, HashSet<String>> getMapChilds(ArrayList<File> javaFiles, boolean chain) throws IOException {
         HashMap<String, HashSet<String>> map = new HashMap<>();
 
         for (File fileEntry : javaFiles) {
@@ -249,7 +316,8 @@ public class MyParser extends Parser {
 
         System.out.println(map);
 
-        ajouterEnfants("Object",map);
+        if (chain)
+            ajouterEnfants("Object",map);
 
         System.out.println(map);
         return map;
