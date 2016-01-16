@@ -34,11 +34,11 @@ public class ParserNMO {
 		final File folder = new File(projectSourcePath);
 		ArrayList<File> javaFiles = listJavaFilesForFolder(folder);
 		
-		// Polymorphisme
+		
 		Map<String, String> map = new HashMap<String,String>();
-		ArrayList<MethodDeclaration> parentList = new ArrayList<MethodDeclaration>();
-		ArrayList<MethodDeclaration> childList = new ArrayList<MethodDeclaration>();
-		int nbTotOfOverridingMethods = 0;
+		Map<String, Integer> overMethByClass = new HashMap<String,Integer>();
+		
+		
 		ArrayList<String> listOfClasses = new ArrayList<String>();
 
 		//On parcours une fois pour recuperer le nom des classes 
@@ -54,8 +54,8 @@ public class ParserNMO {
 			printMethodInvocationInfo(parse);*/
 			
 			String file = fileEntry.getName();
-			file = file.substring(0,file.length()-5); //On enlève l'extension ".java"
-			listOfClasses.add(file); //on ajoute dans la liste des classes 
+			file = file.substring(0,file.length()-5); //suppression de l'extension ".java"
+			listOfClasses.add(file); //on ajoute le nom dans la liste des classes 
 
 		}
 		
@@ -63,45 +63,56 @@ public class ParserNMO {
 		for (File fileEntry : javaFiles) {
 			String content = FileUtils.readFileToString(fileEntry);
 			String fileName = fileEntry.getName();
-			fileName = fileName.substring(0, fileName.length()-5); //On enlève l'extension ".java"
-			for (String name : listOfClasses){ //On parcours notre liste des noms des classes
+			fileName = fileName.substring(0, fileName.length()-5); //suppression de l'extension ".java"
+			for (String name : listOfClasses){ //parcours de la listes des classes
 					if(content.contains("public class "+fileName+" extends "+name)){
-						//Cf. Deuxième boucle de traitement
-						map.put(fileName,name); //on ajoute dans la map de sorte que ça fasse (classe fils, classe pere (celle étendu)) 
+						map.put(fileName,name); //on ajoute dans la map de sorte que ça fasse (classe fille, classe pere (celle étendu)) 
 					}	
 			}
 		}
 		
 		//on compare les signatures des classes pere et fils
+		ArrayList<MethodDeclaration> listPmethod= new ArrayList<MethodDeclaration>();
+		ArrayList<MethodDeclaration> listFmethod = new ArrayList<MethodDeclaration>();
 		for(Map.Entry<String, String> entry : map.entrySet()){
-			 System.out.println("Classe enfant : "+entry.getKey() + " / Classe parent : " + entry.getValue());
+			 System.out.println("Sous-classe : "+entry.getKey() + " / Classe : " + entry.getValue());
 			for(File fileEntry : javaFiles){
 				String content = FileUtils.readFileToString(fileEntry);
 				CompilationUnit parse = parse(content.toCharArray());
 				if(fileEntry.getName().equals(entry.getKey()+".java")){ //on récupère la liste des méthodes du fils avec un visiteur
 				
-					childList = (ArrayList<MethodDeclaration>) getAllMethods(parse);
+					listFmethod = (ArrayList<MethodDeclaration>) getAllMethods(parse);
 				}
 				if(fileEntry.getName().equals(entry.getValue()+".java")) {//on récupère la liste des méthodes du pere avec un visiteur
 					
-					parentList = (ArrayList<MethodDeclaration>) getAllMethods(parse); 
+					listPmethod = (ArrayList<MethodDeclaration>) getAllMethods(parse); 
 				}
 			}
-			//comparaison  1 à 1 les méthodes pour voir si overriding, 
-			for(MethodDeclaration pere : parentList) {
+			//comparaison  1 à 1 les méthodes pour voir si overriding,
+			int overridedMethods = 0;
+			for(MethodDeclaration pere : listPmethod) {
 				String firstLine[] = pere.toString().split("\\{");//Pour avoir simplement la signature
-				for(MethodDeclaration fils : childList) {
+				for(MethodDeclaration fils : listFmethod) {
 					String line[] = fils.toString().split("\\{");//Pour avoir simplement la signature
+					//System.out.println("methodes peres : "+ firstLine[0]);
+					//System.out.println("methodes fils : "+ line[0]);
 					if(firstLine[0].equals(line[0])){
-						nbTotOfOverridingMethods++;
+						overridedMethods++;
 					}
 				}
 			}
+			//on ajoute dans la map final le resultat 
+			overMethByClass.put(entry.getKey(),overridedMethods);
+			
 		}
 		
-		System.out.println("\n ===> liste of classes "+ listOfClasses.size());
-		System.out.println("\n ===> Nombre de méthodes surchargées par une sous classe (NMO)");
-		System.out.println("Nombre total de méthodes surchargées : " + nbTotOfOverridingMethods);
+		System.out.println("\n **** nombre de classes : "+ listOfClasses.size())
+		;
+		System.out.println("\n **** Nombre de méthodes surchargées par sous-classe (NMO)");
+		for(Map.Entry<String, Integer> entry : overMethByClass.entrySet()){
+			 System.out.println("Sous-classe : "+entry.getKey() + " -> NMO : " + entry.getValue());
+		}
+		//System.out.println("Nombre total de méthodes surchargées : " + nbTotOfOverridingMethods);
 		
 		
 	}
@@ -199,8 +210,10 @@ public class ParserNMO {
 			MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
 			parse.accept(visitor);
 			List<MethodDeclaration> allMethods = new ArrayList<MethodDeclaration>();
+			
 			allMethods.addAll(visitor.getMethods());
 			//allMethods.addAll(visitor.getStaticMethods());
+			//System.out.println(" All methods : "+ allMethods);
 			return allMethods;
 		}
 

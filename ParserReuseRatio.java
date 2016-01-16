@@ -22,7 +22,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
-public class ParserReuseSpecRat {
+public class ParserReuseRatio {
 	
 	public static final String projectPath = "/Users/eymard/Documents/workspace/Ast";
 	public static final String projectSourcePath = projectPath + "/Code/jadvisor";
@@ -33,9 +33,8 @@ public class ParserReuseSpecRat {
 		// read java files
 		final File folder = new File(projectSourcePath);
 		ArrayList<File> javaFiles = listJavaFilesForFolder(folder);
-		double nbrSub,nbrSuper,total;
+		double nbrSuper,total;
 		
-		// Reuse Specialization Ratio (S)
 		Map<String, String> map = new HashMap<String,String>();
 		
 		ArrayList<String> listOfClasses = new ArrayList<String>();
@@ -53,7 +52,7 @@ public class ParserReuseSpecRat {
 			printMethodInvocationInfo(parse);*/
 			
 			String file = fileEntry.getName();
-			file = file.substring(0,file.length()-5); //On enlève l'extension ".java"
+			file = file.substring(0,file.length()-5); //suppression de l'extension ".java"
 			listOfClasses.add(file); //on ajoute dans la liste des classes 
 
 		}
@@ -62,10 +61,10 @@ public class ParserReuseSpecRat {
 		for (File fileEntry : javaFiles) {
 			String content = FileUtils.readFileToString(fileEntry);
 			String fileName = fileEntry.getName();
-			fileName = fileName.substring(0, fileName.length()-5); //On enlève l'extension ".java"
-			for (String name : listOfClasses){ //On parcours notre liste des noms des classes
+			fileName = fileName.substring(0, fileName.length()-5); //suppression l'extension ".java"
+			for (String name : listOfClasses){ //parcours de la iste des classes
 					if(content.contains("public class "+fileName+" extends "+name)){
-						//Cf. Deuxième boucle de traitement
+						
 						map.put(fileName,name); //on ajoute dans la map de sorte que ça fasse (classe fils, classe pere (celle étendu)) 
 					}	
 			}
@@ -73,7 +72,7 @@ public class ParserReuseSpecRat {
 		
 		List<String> list = new ArrayList<String>();
 		
-		//on on recupere les super classes 
+		//on recupere les super classes
 		for(Map.Entry<String, String> entry : map.entrySet()){
 			 System.out.println("Classe enfant : "+entry.getKey() + " / Classe parent : " + entry.getValue());
 			 if (!list.contains(entry.getValue())){
@@ -82,14 +81,13 @@ public class ParserReuseSpecRat {
 			
 		}
 		nbrSuper=list.size();
-		nbrSub= map.size();
-		total= nbrSub/ nbrSuper;
+		total= nbrSuper/ listOfClasses.size();
 		
 
-		System.out.println("\n **** Specialization Ratio (S)");
-		System.out.println("Nombre total de subclasses : " +nbrSub );
+		System.out.println("\n *****  Reuse Ratio (U)");;
 		System.out.println("Nombre total de Superclasses : " +nbrSuper );
-		System.out.println("Total S : " +total );
+		System.out.println("Nombre total de classes : " +listOfClasses.size() );
+		System.out.println("Total U : " +total );
 		
 		
 	}
@@ -193,4 +191,5 @@ public class ParserReuseSpecRat {
 		}
 
 }
+
 
