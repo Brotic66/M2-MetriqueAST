@@ -8,10 +8,8 @@ import step2.VariableDeclarationFragmentVisitor;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -29,66 +27,82 @@ public class MyParser extends Parser {
         // read java files
         final File folder = new File(projectSourcePath);
         ArrayList<File> javaFiles = listJavaFilesForFolder(folder);
-
+        HashMap<String, ArrayList<String>> map = new HashMap<>();
         MyStruct struct = new MyStruct();
 
-        BMW voiture = new BMW();
-        voiture.roule();
-
-        /*for (File fileEntry : javaFiles) {
+        for (File fileEntry : javaFiles) {
             String content = FileUtils.readFileToString(fileEntry);
-
             CompilationUnit parse = parse(content.toCharArray());
 
-            //System.out.println("========== Fichier : " + fileEntry.getName());
-
+            /**
+             * Fonction pour la métrique NOM
+             */
             //classNOM(parse, true, struct);
+
+            /**
+             * Fonction pour la métrique NOM
+             */
             //classNOA(parse, true, struct);
-            //cohesionICH(parse, true, struct);
-        }*/
 
+            /**
+             * Fonction pour la métrique TCC
+             */
+            //cohesionTCC(parse);
+
+            couplingCBO(parse, javaFiles, fileEntry.getName(), map);
+        }
+
+        /**
+         * Métrique MHF (non réussis) + affichage
+         */
         //System.out.println(infoHidingMHF(javaFiles));
-        //System.out.println(getMapChilds(javaFiles, true));
-        //inheritanceDOI(javaFiles);
-        inheritanceNOC(javaFiles, true, struct);
 
+        /**
+         * Métrique DOOI
+         */
+        //inheritanceDOI(javaFiles);
+
+        /**
+         * Métrique NOC
+         */
+        // inheritanceNOC(javaFiles, true, struct);
+
+        /**
+         * Métrique NMO
+         */
+        //polymorfismNMO(javaFiles);
+
+        /**
+         * Affichage des résultats stocké dans la structure (si il y a lieu)
+         */
         System.out.println("Minimum : " + struct.min);
         System.out.println("Maximum : " + struct.max);
         System.out.println("Somme : " + struct.som);
         System.out.println(struct.liste);
         System.out.println("Moyenne : " + (double)(struct.som)/struct.liste.size());
-    }
 
-    private static void cohesionICH(CompilationUnit parse, boolean init, MyStruct struct) {
-        int nbr = 0;
-        MethodDeclarationVisitor visitor1 = new MethodDeclarationVisitor();
-        parse.accept(visitor1);
-
-        for (MethodDeclaration method : visitor1.getMethods()) {
-            MethodInvocationVisitor visitor2 = new MethodInvocationVisitor();
-            method.accept(visitor2);
-
-            for (MethodInvocation methodInvocation : visitor2.getMethods()) {
-                String callerClass = method.resolveBinding().getDeclaringClass().getName();
-                String calledClass = methodInvocation.resolveMethodBinding().getDeclaringClass().getName();
-
-                if (calledClass.equals(callerClass))
-                    nbr++;
-            }
+        /**
+         * Affichage pour chaque classe de CBO
+         */
+        for (Map.Entry entry : map.entrySet()) {
+            System.out.println("Class : " + entry.getKey() + " CBO : " + ((ArrayList)entry.getValue()).size());
         }
 
-        struct.som += nbr;
-        struct.liste.add(nbr);
-        if (nbr > struct.max)
-            struct.max = nbr;
-        if (init) {
-            init = false;
-            struct.min = nbr;
-        } else if (struct.min > nbr) {
-            struct.min = nbr;
+        /**
+         * Moyenne de CBO
+         */
+        int totalCouplage = 0;
+        for (Map.Entry entry : map.entrySet()) {
+            totalCouplage += ((ArrayList)entry.getValue()).size();
         }
+        System.out.println("Moyenne de couplage : " + (double) totalCouplage / (double) 34 );
     }
-    
+
+    /**
+     * Fonction permettant de calculer la métrique TCC de cohésion.
+     *
+     * @param parse
+     */
 	public static void cohesionTCC(CompilationUnit parse){
 		 MethodDeclarationVisitor visitor1 = new MethodDeclarationVisitor();
 	     parse.accept(visitor1);
@@ -123,6 +137,13 @@ public class MyParser extends Parser {
 	     
 	}
 
+    /**
+     * Fonction permettant de calculer la métrique de classe NOM.
+     *
+     * @param parse
+     * @param init
+     * @param struct
+     */
     private static void classNOM(CompilationUnit parse, boolean init, MyStruct struct) {
         MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
         parse.accept(visitor);
@@ -141,6 +162,13 @@ public class MyParser extends Parser {
         }
     }
 
+    /**
+     * Méthode permettant de calculer la métrique de classe NOA.
+     *
+     * @param parse
+     * @param init
+     * @param struct
+     */
     private static void classNOA(CompilationUnit parse, boolean init, MyStruct struct) {
         VariableDeclarationFragmentVisitor visitor = new VariableDeclarationFragmentVisitor();
         parse.accept(visitor);
@@ -167,6 +195,14 @@ public class MyParser extends Parser {
         }
     }
 
+    /**
+     * Fonction permettant de calculer la métrique d'information cachée MHF.
+     * Nous n'avons pas réussi à obtenir des résultats corrects avec cette fonctions.
+     *
+     * @param javaFiles
+     * @return
+     * @throws IOException
+     */
     private static float infoHidingMHF(ArrayList<File> javaFiles) throws IOException {
         ArrayList<Integer> mvs = new ArrayList<>();
         HashMap<String, HashSet<String>> map = getMapChilds(javaFiles, true);
@@ -174,8 +210,6 @@ public class MyParser extends Parser {
         int nbrClasse = 0;
 
         for (File fileEntry : javaFiles) {
-            System.out.println(fileEntry.getName());
-
             String content = FileUtils.readFileToString(fileEntry);
             CompilationUnit parse = parse(content.toCharArray());
 
@@ -202,8 +236,6 @@ public class MyParser extends Parser {
                 if (map.containsKey(className))
                 mvs.add(map.get(className).size() * cptMethodPubProt);
             }
-
-            System.out.println(mvs);
         }
 
         float som = 0;
@@ -214,14 +246,20 @@ public class MyParser extends Parser {
         return (((float)1 - som)/ (float)nbrMethod);
     }
 
+    /**
+     * Fonction permettant le calcul de la métrique d'héritage NOC.
+     *
+     * @param javaFiles
+     * @param init
+     * @param struct
+     * @throws IOException
+     */
     private static void inheritanceNOC(ArrayList<File> javaFiles, boolean init, MyStruct struct) throws IOException {
         ArrayList<Integer> mvs = new ArrayList<>();
         HashMap<String, HashSet<String>> map = getMapChilds(javaFiles, false);
 
         for (Map.Entry<String, HashSet<String>> entry : map.entrySet()) {
-
             if (!entry.getKey().equals("Object") && !entry.getKey().startsWith("J")) {
-
                 boolean test = false;
 
                 for (File s : javaFiles) {
@@ -236,8 +274,6 @@ public class MyParser extends Parser {
                     struct.som += entry.getValue().size();
                     struct.liste.add(entry.getValue().size());
 
-                    System.out.println(entry.getKey());
-
                     if (entry.getValue().size() > struct.max)
                         struct.max = entry.getValue().size();
                     if (init) {
@@ -251,6 +287,15 @@ public class MyParser extends Parser {
         }
     }
 
+    /**
+     * Cette fonction crée une map avec clef = parent et valeur = liste d'enfants.
+     * Si chain = true alors on liste les enfants indirect, sinon seulement les directs.
+     *
+     * @param javaFiles
+     * @param chain
+     * @return
+     * @throws IOException
+     */
     public static HashMap<String, HashSet<String>> getMapChilds(ArrayList<File> javaFiles, boolean chain) throws IOException {
         HashMap<String, HashSet<String>> map = new HashMap<>();
 
@@ -263,9 +308,7 @@ public class MyParser extends Parser {
             MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
             parse.accept(visitor);
 
-            if (visitor.getMethods().isEmpty())
-                System.out.println("========== Fuck ==========");
-            else {
+            if (!visitor.getMethods().isEmpty()) {
                 ITypeBinding typeEnfant = visitor.getMethods().get(0).resolveBinding().getDeclaringClass();
                 String enfant = typeEnfant.getName();
                 ITypeBinding[] inter = typeEnfant.getInterfaces();
@@ -282,10 +325,8 @@ public class MyParser extends Parser {
                     if (!map.containsKey(enfant))
                         map.put(enfant, new HashSet<>());
 
-                        listEnfants.add(enfant);
-                        System.out.println("Enfant : " + enfant + "=== Parent : " + parent);
-
-                        map.get(parent).addAll(listEnfants);
+                    listEnfants.add(enfant);
+                    map.get(parent).addAll(listEnfants);
 
                     for (ITypeBinding i : inter) {
                         if (!map.containsKey(i.getName()))
@@ -299,8 +340,8 @@ public class MyParser extends Parser {
                         map.get("Object").add(i.getName());
                     }
 
-                        if (!map.get(parent).contains(enfant))
-                            map.get(parent).add(enfant);
+                    if (!map.get(parent).contains(enfant))
+                        map.get(parent).add(enfant);
 
                     typeEnfant = typeParent;
                     inter = typeEnfant.getInterfaces();
@@ -323,7 +364,12 @@ public class MyParser extends Parser {
         return map;
     }
 
-
+    /**
+     * Fonction récursive qui ajoute les enfants indirect aux parents en utilisants le principe des liste chainée revisité.
+     *
+     * @param s
+     * @param map
+     */
     public static void ajouterEnfants(String s, HashMap<String, HashSet<String>> map)
     {
         if (map.containsKey(s))
@@ -336,6 +382,12 @@ public class MyParser extends Parser {
             }
     }
 
+    /**
+     * Fonction pour la métrique d'héritage DOI.
+     *
+     * @param javaFiles
+     * @throws IOException
+     */
     public static void inheritanceDOI(ArrayList<File> javaFiles) throws IOException {
         HashMap<String, HashSet<String>> map = new HashMap<>();
 
@@ -380,5 +432,188 @@ public class MyParser extends Parser {
         }
 
         System.out.println(profondeurMax +1);
+    }
+
+    /**
+     * Fonction permettant le calcul de la métrique NMO
+     *
+     * @param javaFiles
+     * @throws IOException
+     */
+    public static void polymorfismNMO(ArrayList<File> javaFiles) throws IOException {
+        ArrayList<String> classList = new ArrayList<>();
+        Map<String, String> map = new HashMap<>();
+        Map<String, Integer> listMethodOvByClass = new HashMap<>();
+
+        for (File fileEntry : javaFiles) {
+            String file = fileEntry.getName();
+            file = file.substring(0,file.length()-5);
+            classList.add(file);
+
+        }
+
+        for (File fileEntry : javaFiles) {
+            String content = FileUtils.readFileToString(fileEntry);
+            String fileName = fileEntry.getName();
+            fileName = fileName.substring(0, fileName.length()-5);
+            for (String name : classList)
+                if(content.contains("public class "+fileName+" extends "+name))
+                    map.put(fileName,name);
+        }
+
+        ArrayList<MethodDeclaration> listPmethod= new ArrayList<>();
+        ArrayList<MethodDeclaration> listFmethod = new ArrayList<>();
+        for(Map.Entry<String, String> entry : map.entrySet()){
+            for(File fileEntry : javaFiles){
+                String content = FileUtils.readFileToString(fileEntry);
+                CompilationUnit parse = parse(content.toCharArray());
+                if(fileEntry.getName().equals(entry.getKey()+".java"))
+                    listFmethod = (ArrayList<MethodDeclaration>) getAllMethods(parse);
+                if(fileEntry.getName().equals(entry.getValue()+".java"))
+                    listPmethod = (ArrayList<MethodDeclaration>) getAllMethods(parse);
+            }
+
+            int overridedMethods = 0;
+            for(MethodDeclaration pere : listPmethod) {
+                String firstLine[] = pere.toString().split("\\{");
+                for(MethodDeclaration fils : listFmethod) {
+                    String line[] = fils.toString().split("\\{");
+                    if(firstLine[0].equals(line[0]))
+                        overridedMethods++;
+                }
+            }
+            listMethodOvByClass.put(entry.getKey(),overridedMethods);
+        }
+
+        System.out.println("\n ========== nombre de classes : "+ classList.size());
+        System.out.println("\n ========== Nombre de méthodes surchargées par sous-classe (NMO)");
+        for(Map.Entry<String, Integer> entry : listMethodOvByClass.entrySet())
+            System.out.println("Sous-classe : "+entry.getKey() + " -> NMO : " + entry.getValue());
+    }
+
+    /**
+     * Récupèrent toutes les méthodes d'un fichier et les places dans un ArrayList
+     *
+     * @param parse
+     * @return
+     */
+    public static List<MethodDeclaration> getAllMethods (CompilationUnit parse) {
+        MethodDeclarationVisitor visitor = new MethodDeclarationVisitor();
+        parse.accept(visitor);
+        List<MethodDeclaration> allMethods = new ArrayList<>();
+
+        allMethods.addAll(visitor.getMethods());
+        return allMethods;
+    }
+
+    /**
+     * Métrique de réuilisation
+     *
+     * @param javaFiles
+     * @throws IOException
+     */
+    public static void ReuseRatio(ArrayList<File> javaFiles) throws IOException {
+        Map<String, String> map = new HashMap<>();
+        ArrayList<String> classList = new ArrayList<>();
+        double nbrParent;
+        double result;
+
+        for (File fileEntry : javaFiles) {
+            String file = fileEntry.getName();
+            file = file.substring(0,file.length()-5);
+            classList.add(file);
+
+        }
+
+        for (File fileEntry : javaFiles) {
+            String content = FileUtils.readFileToString(fileEntry);
+            String fileName = fileEntry.getName();
+            fileName = fileName.substring(0, fileName.length()-5);
+            for (String name : classList)
+                if(content.contains("public class "+fileName+" extends "+name))
+                    map.put(fileName,name);
+        }
+
+        List<String> list = new ArrayList<>();
+
+        map.entrySet().stream().filter(entry -> !list.contains(entry.getValue())).forEach(entry -> list.add(entry.getValue()));
+
+        nbrParent=list.size();
+        result= nbrParent/ classList.size();
+
+        System.out.println("Nombre total de Superclasses : " +nbrParent );
+        System.out.println("Nombre total de classes : " +classList.size() );
+        System.out.println("Résultat : " +result );
+    }
+
+    /**
+     * Métrique de Reutilisation.
+     *
+     * @param javaFiles
+     * @throws IOException
+     */
+    public static void reuseSpec(ArrayList<File> javaFiles) throws IOException {
+        double nbrChild;
+        double nbrParent;
+        double result;
+
+        Map<String, String> map = new HashMap<>();
+        ArrayList<String> classList = new ArrayList<>();
+
+        for (File fileEntry : javaFiles) {
+            String file = fileEntry.getName();
+            file = file.substring(0,file.length()-5);
+            classList.add(file);
+
+        }
+
+        for (File fileEntry : javaFiles) {
+            String content = FileUtils.readFileToString(fileEntry);
+            String fileName = fileEntry.getName();
+            fileName = fileName.substring(0, fileName.length()-5);
+            for (String name : classList)
+                if(content.contains("public class "+fileName+" extends "+name))
+                    map.put(fileName,name);
+        }
+
+        List<String> list = new ArrayList<>();
+        map.entrySet().stream().filter(entry -> !list.contains(entry.getValue())).forEach(entry -> list.add(entry.getValue()));
+        nbrParent=list.size();
+        nbrChild= map.size();
+        result= nbrChild/ nbrParent;
+
+        System.out.println("Nombre total de subclasses : " +nbrChild );
+        System.out.println("Nombre total de Superclasses : " +nbrParent );
+        System.out.println("Résultat : " +result );
+    }
+
+    public static void couplingCBO(CompilationUnit parse, ArrayList<File> javaFiles, String fileName, Map<String, ArrayList<String>> map) throws IOException {
+
+        ArrayList<String> l = new ArrayList<String>();
+        ArrayList<String> classList = new ArrayList<>();
+        ArrayList<String> couplage = new ArrayList<>();
+
+        for (File fileEntry : javaFiles) {
+            String file = fileEntry.getName();
+            file = file.substring(0,file.length()-5);
+            classList.add(file);
+
+        }
+
+        VariableDeclarationFragmentVisitor visitor = new VariableDeclarationFragmentVisitor();
+        parse.accept(visitor);
+
+        for (VariableDeclarationFragment frag : visitor.getVariables()) {
+            String s = frag.resolveBinding().getType().getName();
+
+            while (s.contains("[]"))
+                s = s.substring(0, s.length() - 2);
+            if (!couplage.contains(s) && !s.equals("long")&& !s.equals("int")&& !s.equals("byte")&& !s.equals("short")
+                    && !s.equals("float") && !s.equals("double") && !s.equals("char") && !s.equals("boolean") && !s.equals("String"))
+                couplage.add(s);
+        }
+
+        l.addAll(couplage.stream().filter(classList::contains).collect(Collectors.toList()));
+        map.put(fileName, l);
     }
 }
