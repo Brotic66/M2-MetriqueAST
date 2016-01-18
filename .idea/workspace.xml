@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c1412f43-813f-44a5-86f9-5225f6d16e97" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/ProjSeriai/MyParser.class" afterPath="$PROJECT_DIR$/out/production/ProjSeriai/MyParser.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MyParser.java" afterPath="$PROJECT_DIR$/MyParser.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/ProjSeriai/.idea/workspace.xml" afterPath="$PROJECT_DIR$/out/production/ProjSeriai/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/step2/VariableDeclarationFragmentVisitor.java" afterPath="$PROJECT_DIR$/step2/VariableDeclarationFragmentVisitor.java" />
     </list>
     <ignored path="ProjSeriai.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -31,11 +28,11 @@
       <file leaf-file-name="MyParser.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MyParser.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-8.745033">
-              <caret line="94" column="48" selection-start-line="94" selection-start-column="48" selection-end-line="97" selection-end-column="63" />
+            <state vertical-scroll-proportion="-3.719457">
+              <caret line="77" column="35" selection-start-line="77" selection-start-column="35" selection-end-line="77" selection-end-column="35" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#20727#20735#0" expanded="true" />
+                <element signature="e#20729#20737#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -695,12 +692,12 @@
       <workItem from="1452894694893" duration="237000" />
       <workItem from="1452958968630" duration="1401000" />
       <workItem from="1453103164982" duration="2542000" />
-      <workItem from="1453106059285" duration="4343000" />
+      <workItem from="1453106059285" duration="4575000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="47799000" />
+    <option name="totallyTimeSpent" value="48031000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="25" width="1920" height="1055" extended-state="6" />
@@ -714,7 +711,7 @@
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32800853" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32800853" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32800853" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.26091588" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1119,11 +1116,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/MyParser.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-8.745033">
-          <caret line="94" column="48" selection-start-line="94" selection-start-column="48" selection-end-line="97" selection-end-column="63" />
+        <state vertical-scroll-proportion="-3.719457">
+          <caret line="77" column="35" selection-start-line="77" selection-start-column="35" selection-end-line="77" selection-end-column="35" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#20727#20735#0" expanded="true" />
+            <element signature="e#20729#20737#0" expanded="true" />
           </folding>
         </state>
       </provider>

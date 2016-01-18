@@ -70,7 +70,7 @@ public class MyParser extends Parser {
         /**
          * Métrique NMO
          */
-        //polymorfismNMO(javaFiles);
+        //polymorphismNMO(javaFiles);
 
         /**
          * Affichage des résultats stocké dans la structure (si il y a lieu)
@@ -440,7 +440,7 @@ public class MyParser extends Parser {
      * @param javaFiles
      * @throws IOException
      */
-    public static void polymorfismNMO(ArrayList<File> javaFiles) throws IOException {
+    public static void polymorphismNMO(ArrayList<File> javaFiles) throws IOException {
         ArrayList<String> classList = new ArrayList<>();
         Map<String, String> map = new HashMap<>();
         Map<String, Integer> listMethodOvByClass = new HashMap<>();
