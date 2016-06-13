@@ -181,11 +181,11 @@ static String[] showCurriculumsDialog (Frame parent, String title, String[] curr
 	} catch (IOException e) {System.out.println("AdvisorDialogs: Catch this exception");}
 	schoolCurriculumsList.setSelectedIndex(0);
 	schoolCurriculumsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	schoolCurriculumsList.setPrototypeCellValue("AAAAA");//sets prefered size
+	schoolCurriculumsList.setPrototypeCellValue("AAAAA");//sets preferred size
 	final JList studentCurriculumsList = new JList(curriculumsVector);
 	studentCurriculumsList.setSelectedIndex(-1);
 	studentCurriculumsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	studentCurriculumsList.setPrototypeCellValue("AAAAA");//sets prefered size
+	studentCurriculumsList.setPrototypeCellValue("AAAAA");//sets preferred size
 	final JButton addButton = new JButton("Add");
 	addButton.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
